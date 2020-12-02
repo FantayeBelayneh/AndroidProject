@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ABC Company</string>
+    <string name="company_name"> Time Off Management App </string>
+    <string name="activity_name1"> Login </string>
+
+    <string name="lbl_userid"> Employee ID </string>
+    <string name="lbl_password"> Password </string>
+
+
+</resources>
