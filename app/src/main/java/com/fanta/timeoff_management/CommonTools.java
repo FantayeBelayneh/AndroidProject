@@ -23,8 +23,7 @@ public class CommonTools
                 messageInterface.dismiss();
             }
         });
-        AlertDialog dialog = messaging.create();
-        dialog.show();
+        messaging.create().show();
     }
 
     protected void ShowExceptionMessage(Exception x, String hint)

@@ -24,7 +24,12 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
+        String cmd;
         db.execSQL(createtablecommand());
+        cmd = "CREATE TABLE BLACK_OUTS (BO_ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
+        db.execSQL(cmd);
+
+
     }
 
     @Override

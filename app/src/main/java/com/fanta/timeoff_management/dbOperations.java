@@ -16,9 +16,13 @@ public class dbOperations  {
     }
     protected boolean validateLogin(SQLiteDatabase db,  String user, String password)
     {
+        Log.i("VALIDATE_LOGIN", "?????");
         String searchQuery;
+        Log.i("VALIDATE_LOGIN 000", user + " " + password);
         searchQuery = "SELECT * FROM USERS WHERE LOGINNAME = '" + user + "' AND PASSWORD = '" + password + "'";
+        Log.i("VALIDATE_LOGIN 100", searchQuery);
         Cursor c = db.rawQuery(searchQuery, null);
+        Log.i("VALIDATE_LOGIN 200", searchQuery);
         Log.i("VALIDATE_LOGIN", searchQuery);
         if (c.getCount()== 1)
         {

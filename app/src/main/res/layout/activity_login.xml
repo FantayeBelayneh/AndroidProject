@@ -83,30 +83,30 @@
         app:layout_constraintTop_toTopOf="@+id/tvEmployeeID" />
 
     <Button
+        android:id="@+id/btnExit"
+        android:layout_width="127dp"
+        android:layout_height="52dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="200dp"
+        android:layout_marginBottom="220dp"
+        android:text="Exit"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/btnLogin" />
+
+    <Button
         android:id="@+id/btnLogin"
         android:layout_width="140dp"
         android:layout_height="55dp"
         android:layout_marginStart="50dp"
 
         android:layout_marginEnd="5dp"
-        android:layout_marginBottom="228dp"
+        android:layout_marginBottom="220dp"
         android:text="Login"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btnExit"
         app:layout_constraintHorizontal_bias="0.03"
         app:layout_constraintStart_toStartOf="parent" />
-
-    <Button
-        android:id="@+id/btnExit"
-        android:layout_width="127dp"
-        android:layout_height="52dp"
-        android:layout_marginStart="5dp"
-        android:layout_marginEnd="200dp"
-        android:layout_marginBottom="228dp"
-        android:text="Exit"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@+id/btnLogin" />
 
     <androidx.constraintlayout.widget.Group
         android:id="@+id/group"
