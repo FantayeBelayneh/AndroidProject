@@ -2,13 +2,13 @@ package com.fanta.timeoff_management;
 
 
 
-        import android.content.Context;
-        import android.database.Cursor;
-        import android.database.sqlite.SQLiteDatabase;
-        import android.database.sqlite.SQLiteOpenHelper;
-        import android.util.Log;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+import android.util.Log;
 
-        import androidx.annotation.Nullable;
+import androidx.annotation.Nullable;
 
 public class DatabaseConnection  extends SQLiteOpenHelper {
     protected String DATABASE_NAME;
@@ -26,7 +26,7 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         String cmd;
         db.execSQL(createtablecommand());
-        cmd = "CREATE TABLE BLACK_OUTS (BO_ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
+        cmd = "CREATE TABLE IF NOT EXISTS BLACK_OUTS (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
         db.execSQL(cmd);
 
 

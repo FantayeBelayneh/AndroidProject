@@ -11,7 +11,7 @@ public class dbOperations  {
     protected DatabaseConnection dbCon;
     public dbOperations(Context cx)
     {
-        dbCon = new DatabaseConnection(cx, "time_off_booking", 1);
+        dbCon = new DatabaseConnection(cx, "time_off_management", 1);
         workingDB = dbCon.getWritableDatabase();
     }
     protected boolean validateLogin(SQLiteDatabase db,  String user, String password)
