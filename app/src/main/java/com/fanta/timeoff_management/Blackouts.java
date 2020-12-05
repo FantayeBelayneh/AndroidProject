@@ -10,6 +10,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
@@ -34,6 +37,8 @@ public class Blackouts extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blackouts);
+
+
 
         Cursor cursor;
         dbOperator = new dbOperations(Blackouts.this);
@@ -182,4 +187,29 @@ public class Blackouts extends AppCompatActivity {
             this.ending = ending;
         }
     }
+
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.bo_menu, menu);
+        return true;
+    }
+
+    public boolean onOptionsItemSelected(MenuItem item) {
+
+        switch (item.getItemId()) {
+            case R.id.addbo:
+                commonTools.ShowMessages("BO Period", "Adding Menu");
+                return true;
+            case R.id.deletebo:
+                commonTools.ShowMessages("BO Period", "Deleting Menu");
+                return true;
+
+            case R.id.editbo:
+                commonTools.ShowMessages("BO Period", "Editing Menu");
+                return true;
+            default:
+                return false;
+        }
+    }
+
 }

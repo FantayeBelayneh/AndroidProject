@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/addbo"
+        android:orderInCategory="101"
+        android:title="Add period"
+        app:showAsAction="always" />
+
+
+    <item
+        android:id="@+id/deletebo"
+        android:orderInCategory="102"
+        android:title="Delete period"
+        app:showAsAction="always" />
+
+
+    <item
+        android:id="@+id/editbo"
+        android:orderInCategory="103"
+        android:title="Edit period"
+        app:showAsAction="always" />
+
+
+
+
+</menu>
