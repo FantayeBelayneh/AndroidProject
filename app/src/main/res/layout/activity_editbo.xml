@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000"
+    android:orientation="vertical"
+    tools:context=".Editbo">
+
+    <Button
+        android:id="@+id/selectStartingDate"
+        android:layout_width="181dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="100dp"
+        android:layout_marginLeft="50dp"
+        android:text="Select Starting Date" />
+
+    <TextView
+        android:id="@+id/dtStart"
+        android:layout_width="225dp"
+        android:layout_height="40dp"
+
+        android:fontFamily="sans-serif-black"
+        android:textSize="20dp"
+
+        android:layout_alignParentTop="true"
+
+        android:layout_toEndOf="@id/selectStartingDate"
+
+        android:layout_marginTop="102dp"
+        android:layout_marginRight="50dp"
+        android:background="#FFFFFF"
+        android:text="" />
+
+    <Button
+        android:id="@+id/SelectEndDate"
+        android:layout_width="181dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="150dp"
+        android:text="Select Ending Date" />
+
+    <TextView
+        android:id="@+id/dtEnd"
+        android:layout_width="225dp"
+        android:layout_height="40dp"
+        android:layout_alignParentTop="true"
+
+        android:fontFamily="sans-serif-black"
+        android:textSize="20dp"
+
+        android:layout_toEndOf="@id/SelectEndDate"
+
+        android:layout_marginTop="154dp"
+        android:layout_marginRight="50dp"
+        android:background="#FFFFFF"
+        android:text="" />
+
+    <CalendarView
+        android:id="@+id/calDate"
+        android:layout_width="364dp"
+        android:layout_height="300dp"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+
+        android:fontFamily="sans-serif-black"
+
+        android:textSize="20dp"
+        android:layout_marginLeft="50dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="205dp"
+        android:background="#FFFFFF" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="50dp"
+        android:layout_marginBottom="83dp"
+        android:text="Save" />
+
+    <Button
+        android:id="@+id/btnClose"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        android:layout_alignParentBottom="true"
+        android:layout_marginLeft="150dp"
+        android:layout_marginRight="50dp"
+        android:layout_marginBottom="84dp"
+        android:text="Close" />
+
+
+</RelativeLayout>

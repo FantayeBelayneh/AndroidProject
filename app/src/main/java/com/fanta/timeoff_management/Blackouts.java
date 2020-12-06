@@ -5,8 +5,10 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.cursoradapter.widget.CursorAdapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,6 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -24,7 +27,12 @@ import java.util.ArrayList;
 public class Blackouts extends AppCompatActivity {
 
     ListView lvBO;
+    TextView start_, ending_, _id;
+    String query;
 
+
+    boolean rowSelected = false;
+    String selectedStart, selectedEnding, selectedID;
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     public SQLiteDatabase database;
@@ -39,39 +47,55 @@ public class Blackouts extends AppCompatActivity {
         setContentView(R.layout.activity_blackouts);
 
 
-
         Cursor cursor;
         dbOperator = new dbOperations(Blackouts.this);
         myDB = dbOperator.workingDB;
         dbOperations = new DatabaseConnection(Blackouts.this, "time_off_management", null, 1);
         database = dbOperations.getWritableDatabase();
         commonTools = new CommonTools(this);
-
         lvBO = findViewById(R.id.lvBlackOuts);
 
-        String query = " SELECT _id, START_FROM, ENDING FROM BLACK_OUTS ";
 
+        query = " SELECT _id, START_FROM, ENDING FROM BLACK_OUTS ";
+
+        RefreshListView();
+
+        lvBO.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick (AdapterView < ? > adapter, View view,int position, long arg){
+                rowSelected = true;
+                start_ = view.findViewById(R.id.txtFrom);
+                ending_ = view.findViewById(R.id.txtTo);
+                _id = view.findViewById(R.id.txtid);
+            }
+        });
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        rowSelected = false;
+        RefreshListView();
+    }
+
+    protected void RefreshListView()
+    {
         try
         {
             cursor = database.rawQuery( query, null);
-
             cursor.moveToFirst();
-
             Log.i("-adapter", String.valueOf(cursor.getCount()));
 
             //final BOAdapter bo_dapter = new BOAdapter( Blackouts.this, cursor );
             final CursorAdapter bo_dapter = new CursorAdapter(Blackouts.this, cursor);
             try {
-               lvBO.setAdapter (bo_dapter);
-               bo_dapter.notifyDataSetChanged();
+                lvBO.setAdapter (bo_dapter);
+                bo_dapter.notifyDataSetChanged();
             }
             catch (Exception k)
             {
-              commonTools.ShowExceptionMessage(k, "lv");
+                commonTools.ShowExceptionMessage(k, "lv");
             }
-
-
-
         }
         catch (Exception x)
         {
@@ -79,36 +103,30 @@ public class Blackouts extends AppCompatActivity {
         }
     }
 
+
     public class CursorAdapter extends androidx.cursoradapter.widget.CursorAdapter {
         public CursorAdapter(Context context, Cursor cursor) {
             super(context, cursor, 0);
         }
 
-        // The newView method is used to inflate a new view and return it,
-        // you don't bind any data to the view at this point.
         @Override
         public View newView(Context context, Cursor cursor, ViewGroup parent) {
             return LayoutInflater.from(context).inflate(R.layout.layout_blackouts, parent, false);
         }
 
-        // The bindView method is used to bind all data to a given view
-        // such as setting the text on a TextView.
+
         @Override
         public void bindView(View view, Context context, Cursor cursor) {
-            // Find fields to populate in inflated template
-            //TextView tvBody = (TextView) view.findViewById(R.id.tvBody);
-            //TextView tvPriority = (TextView) view.findViewById(R.id.tvPriority);
-
-
 
             TextView starting =  view.findViewById(R.id.txtFrom);
             TextView ending = view.findViewById(R.id.txtTo);
-            // Extract properties from cursor
+            TextView rec_id = view.findViewById(R.id.txtid);
             String start_ = cursor.getString(cursor.getColumnIndexOrThrow("START_FROM"));
             String end_ = cursor.getString(cursor.getColumnIndexOrThrow("ENDING"));
-            // Populate fields with extracted properties
+            String rid = cursor.getString(cursor.getColumnIndexOrThrow("_id"));
             starting.setText(start_);
             ending.setText(end_);
+            rec_id.setText(rid);
         }
     }
 
@@ -199,13 +217,50 @@ public class Blackouts extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.addbo:
                 commonTools.ShowMessages("BO Period", "Adding Menu");
+
+                try {
+                    Intent goBO = new Intent(Blackouts.this, Editbo.class);
+                    goBO.putExtra("mode", "borange");
+                    goBO.putExtra("dataState", "new");
+                    startActivity(goBO);
+                }
+                catch (Exception y)
+                {
+                    commonTools.ShowExceptionMessage(y, "show new activity");
+                }
+
                 return true;
             case R.id.deletebo:
-                commonTools.ShowMessages("BO Period", "Deleting Menu");
+                if (rowSelected == false)
+                {
+                    commonTools.ShowMessages("BO Period", "Please click on your selection ");
+                }
+                else
+                {
+                    String delQuery = "DELETE FROM BLACK_OUTS WHERE _id = " + _id.getText().toString();
+                    database.execSQL(delQuery);
+                    RefreshListView();
+                }
                 return true;
 
             case R.id.editbo:
-                commonTools.ShowMessages("BO Period", "Editing Menu");
+
+                if (rowSelected == false)
+                {
+                    commonTools.ShowMessages("BO Period", "Please click on your selection ");
+                }
+                else
+                {
+                    Intent goBO = new Intent(Blackouts.this, Editbo.class);
+                    goBO.putExtra("mode", "borange");
+                    goBO.putExtra("dataState", "edit");
+                    goBO.putExtra("ID_fieldValue",  _id.getText().toString());
+                    goBO.putExtra("startingDate", start_.getText().toString());
+                    goBO.putExtra("endingDate", ending_.getText().toString());
+                    //commonTools.ShowMessages("passing id", _id.getText().toString());
+                    startActivity(goBO);
+
+                }
                 return true;
             default:
                 return false;
