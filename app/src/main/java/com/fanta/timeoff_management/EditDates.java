@@ -1,19 +1,25 @@
 package com.fanta.timeoff_management;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.icu.text.SimpleDateFormat;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
 import android.widget.TextView;
 
 import java.text.ParseException;
+import java.time.DayOfWeek;
+import java.time.LocalDate;
+import java.util.Calendar;
 import java.util.Date;
 
 public class EditDates extends AppCompatActivity    {
@@ -81,26 +87,23 @@ public class EditDates extends AppCompatActivity    {
         }
 
         btnSave.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View v) {
-                switch (mode)
-                {
-                    case "borange":
-                        switch (dataState)
-                        {
+                switch (mode) {
+                    case "bo":
+                        switch (dataState) {
                             case "new":
                                 try {
-                                    canSave = datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
-                                    if (canSave == false ) canSave = datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
-                                    if ( canSave == true)
-                                    {
-                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '" ;
+                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == false)
+                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == true) {
+                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
                                         sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
                                         database.execSQL(sqlCommand);
                                         finish();
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
                                     }
                                 } catch (ParseException e) {
@@ -110,18 +113,16 @@ public class EditDates extends AppCompatActivity    {
                             case "edit":
 
                                 try {
-                                    canSave = datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
-                                    if (canSave == false ) canSave = datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
-                                    if (  canSave == true)
-                                    {
-                                        String sqlCommand = "UPDATE " + workingTable  +" SET START_FROM = '" + tvStartingDate.getText().toString() ;
-                                        sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString() ;
-                                        sqlCommand +=  "' WHERE _id =" +  String.valueOf(ID_fieldValue) ;
+                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == false)
+                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == true) {
+                                        String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
+                                        sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
+                                        sqlCommand += "' WHERE _id =" + String.valueOf(ID_fieldValue);
                                         database.execSQL(sqlCommand);
                                         finish();
-                                    }
-                                    else
-                                    {
+                                    } else {
                                         commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
                                     }
                                 } catch (ParseException e) {
@@ -130,12 +131,52 @@ public class EditDates extends AppCompatActivity    {
                                 break;
                         }
                         break;
-                        ////////////////////////*********************************//////////////////////////////
-                    case "timeoff":
-                         commonTools.ShowMessages("Save Data", "under construction");
-                     break;
+                    ////////////////////////*********************************//////////////////////////////
+                    case "to":
+                        switch (dataState) {
+                            case "new":
+                                try {
+                                    int z = getCountOfWorkingDays(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == false)
+                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == true) {
+                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
+                                        sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
+                                        database.execSQL(sqlCommand);
+                                        finish();
+                                    } else {
+                                        commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case "edit":
+
+                                try {
+                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == false)
+                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == true) {
+                                        String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
+                                        sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
+                                        sqlCommand += "' WHERE _id =" + String.valueOf(ID_fieldValue);
+                                        database.execSQL(sqlCommand);
+                                        finish();
+                                    } else {
+                                        commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                        }
+                        break;
                 }
-            }
+
+                }
+
         });
 
 
@@ -202,12 +243,53 @@ public class EditDates extends AppCompatActivity    {
         });
     }
 
+    protected boolean computeLegibility(String sdt1, String sdt2) throws ParseException {
+        Date dt1, dt2;
+
+       /* dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);*/
+        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
+        dt2 = new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
+        return  false;
+    }
+
+
+    protected int getCountOfWorkingDays(String sdt1, String sdt2) throws ParseException {
+        int days = 0;
+        int theDt;
+        Date dt1, dt2;
+        int tempDt = 0;
+        Log.i("Date matters", " 1 was here"  + sdt1  );  //+ "   "  + sdt1.substring(6,2)
+
+        //dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        //dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
+
+        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
+        dt2 = new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
+        Log.i("Date matters", "dt1 = " + dt1.toString()  + "  " + dt2.toString());
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        Calendar c = Calendar.getInstance();
+        while (dt2.after(dt1)) {
+            if (dt1.toString().substring(0,3).toString().equals("Sat"))   { }
+            else if (dt1.toString().substring(0,3).toString().equals("Sun")) { }
+            else  { days++; }
+            c.setTime(sdf.parse(sdt1));
+            c.add(Calendar.DATE, 1);
+            sdt1 = sdf.format(c.getTime());
+            dt1 = new Date(Integer.parseInt(sdt1.substring(0, 4)) - 1900, Integer.parseInt(sdt1.substring(5, 7)) - 1, Integer.parseInt(sdt1.substring(8, 10)));
+        }
+        Log.i("Date matters", "Num of working days = " + days);
+        return days;
+    }
 
     protected  boolean datesInOrder(String sdt1, String sdt2) throws ParseException {
         Date dt1, dt2;
 
-        dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
-        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
+     /*   dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);*/
+        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
+        dt2 = new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
 
         if (dt2.after(dt1))
         {

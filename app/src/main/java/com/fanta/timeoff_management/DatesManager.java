@@ -23,7 +23,7 @@ public class DatesManager extends AppCompatActivity {
     ListView lvBO;
     TextView start_, ending_, _id;
     String query;
-    String workingTable, dataset;
+    String workingTable, mode;
     boolean isAdmin;
     boolean optionsEnabled;
 
@@ -44,15 +44,15 @@ public class DatesManager extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blackouts);
 
-        dataset = "bo";
-        workingTable = "BLACK_OUTS";
-        isAdmin = true;
+        mode = "to";
+        workingTable = "TIME_OFF";
+        isAdmin = false;
 
-        if (isAdmin == false && dataset == "bo")
+        if (isAdmin == false && mode == "bo")
         {
             optionsEnabled = false;
         }
-        else  if (isAdmin == true && dataset == "bo")
+        else  if (isAdmin == true && mode == "bo")
         {
             optionsEnabled = true;
         }
@@ -172,7 +172,7 @@ public class DatesManager extends AppCompatActivity {
 
                     try {
                         Intent goBO = new Intent(DatesManager.this, EditDates.class);
-                        goBO.putExtra("mode", "borange");
+                        goBO.putExtra("mode", mode);
                         goBO.putExtra("dataState", "new");
                         goBO.putExtra("workingTable", workingTable);
                         startActivity(goBO);
@@ -197,7 +197,7 @@ public class DatesManager extends AppCompatActivity {
                     } else {
                         //commonTools.ShowMessages("Arg builder", "Load bundle");
                         Intent goBO = new Intent(DatesManager.this, EditDates.class);
-                        goBO.putExtra("mode", "borange");
+                        goBO.putExtra("mode", mode);
                         goBO.putExtra("dataState", "edit");
                         goBO.putExtra("ID_fieldValue", _id.getText().toString());
                         //commonTools.ShowMessages("Arg builder", " _id = " + _id.getText().toString());
