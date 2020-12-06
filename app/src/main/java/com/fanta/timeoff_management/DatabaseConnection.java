@@ -29,6 +29,11 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
         cmd = "CREATE TABLE IF NOT EXISTS BLACK_OUTS (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
         db.execSQL(cmd);
 
+        cmd = "CREATE TABLE IF NOT EXISTS TIME_OFF " ;
+        cmd += " (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, STAFF_ID VARCHAR(6), " ;
+        cmd += " START_FROM VARCHAR(10), ENDING VARCHAR(10), BENEFIT_DAYS INTEGER, " ;
+        cmd += " APPROVED VARCHAR(1) DEFAULT 0 CHECK( APPROVED IN ('0', '1')) )";
+        db.execSQL(cmd);
 
     }
 

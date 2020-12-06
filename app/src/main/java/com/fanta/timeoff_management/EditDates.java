@@ -11,20 +11,20 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
-import android.widget.DatePicker;
 import android.widget.TextView;
 
 import java.text.ParseException;
-import java.util.Calendar;
 import java.util.Date;
 
-public class Editbo extends AppCompatActivity    {
+public class EditDates extends AppCompatActivity    {
 
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     public SQLiteDatabase database;
     private DatabaseConnection dbOperations;
     CommonTools commonTools;
+    String workingTable, dataset;
+    boolean canSave = false;
 
 
     Button btnClose, btnSelectStart, btnSelectEnd, btnSave;
@@ -43,9 +43,9 @@ public class Editbo extends AppCompatActivity    {
         setContentView(R.layout.activity_editbo);
 
         Cursor cursor;
-        dbOperator = new dbOperations(Editbo.this);
+        dbOperator = new dbOperations(EditDates.this);
         myDB = dbOperator.workingDB;
-        dbOperations = new DatabaseConnection(Editbo.this, "time_off_management", null, 1);
+        dbOperations = new DatabaseConnection(EditDates.this, "time_off_management", null, 1);
         database = dbOperations.getWritableDatabase();
         commonTools = new CommonTools(this);
 
@@ -58,22 +58,22 @@ public class Editbo extends AppCompatActivity    {
         calDate = findViewById(R.id.calDate);
         Date SelectedDate;
 
-
-
         Bundle bundle = getIntent().getExtras();
 
         mode = bundle.getString("mode");
         dataState = bundle.getString("dataState").toString();
+        workingTable = bundle.getString("workingTable", "workingTable");
 
-        if (mode.equals("edit"))
+
+
+        if (dataState.equals("edit"))
         {
             ID_fieldValue = bundle.getString("ID_fieldValue");
+            //commonTools.ShowMessages("edit Data", "before if ID = " + bundle.getString("ID_fieldValue")  );
             startingDate = bundle.getString("startingDate");
             endingDate = bundle.getString("endingDate").toString();
         }
 
-
-        commonTools.ShowMessages("edit Data", "before if " + ID_fieldValue );
         if (dataState.equals("edit"))
         {
             tvStartingDate.setText(startingDate);
@@ -90,12 +90,13 @@ public class Editbo extends AppCompatActivity    {
                         {
                             case "new":
                                 try {
-                                    if ( datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == true)
+                                    canSave = datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
+                                    if (canSave == false ) canSave = datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
+                                    if ( canSave == true)
                                     {
-                                        String sqlCommand = "INSERT INTO BLACK_OUTS (START_FROM, ENDING) VALUES ( '" ;
+                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '" ;
                                         sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
                                         database.execSQL(sqlCommand);
-                                        //commonTools.ShowMessages("save complete", "Saved!");
                                         finish();
                                     }
                                     else
@@ -109,12 +110,13 @@ public class Editbo extends AppCompatActivity    {
                             case "edit":
 
                                 try {
-                                    if ( datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == true)
+                                    canSave = datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
+                                    if (canSave == false ) canSave = datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString());
+                                    if (  canSave == true)
                                     {
-                                        String sqlCommand = "UPDATE BLACK_OUTS SET START_FROM = '" + tvStartingDate.getText().toString() ;
+                                        String sqlCommand = "UPDATE " + workingTable  +" SET START_FROM = '" + tvStartingDate.getText().toString() ;
                                         sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString() ;
                                         sqlCommand +=  "' WHERE _id =" +  String.valueOf(ID_fieldValue) ;
-                                        //commonTools.ShowMessages("Save Data", sqlCommand);
                                         database.execSQL(sqlCommand);
                                         finish();
                                     }
@@ -128,6 +130,7 @@ public class Editbo extends AppCompatActivity    {
                                 break;
                         }
                         break;
+                        ////////////////////////*********************************//////////////////////////////
                     case "timeoff":
                          commonTools.ShowMessages("Save Data", "under construction");
                      break;
@@ -154,7 +157,10 @@ public class Editbo extends AppCompatActivity    {
                     try {
                         if ( datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == false)
                         {
-                            commonTools.ShowMessages("Dates not in chronological order", "Forcing change of ending date");
+                            if (datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == false)
+                            {
+                                commonTools.ShowMessages("Dates not in chronological order", "Forcing change of ending date");
+                            }
                             tvEndingDate.setText(selectedDate);
                         }
                     } catch (ParseException e) {
@@ -174,7 +180,10 @@ public class Editbo extends AppCompatActivity    {
                     try {
                         if ( datesInOrder(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == false)
                         {
-                            commonTools.ShowMessages("Dates not in chronological order", "Forcing change of starting date");
+                            if (datesEqual(tvStartingDate.getText().toString()  , tvEndingDate.getText().toString()) == false)
+                            {
+                                commonTools.ShowMessages("Dates not in chronological order", "Forcing change of starting date");
+                            }
                             tvStartingDate.setText(selectedDate);
                         }
                     } catch (ParseException e) {
@@ -209,6 +218,26 @@ public class Editbo extends AppCompatActivity    {
             return  false;
         }
     }
+
+    protected boolean datesEqual(String sdt1, String sdt2) throws ParseException {
+        Date dt1, dt2;
+
+        dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
+
+        if (dt1.getYear() == dt2.getYear())
+        {
+            if (dt1.getMonth() == dt2.getMonth())
+            {
+                if(dt1.getDay() == dt2.getDay())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
 
     class updateUI extends AsyncTask<String, String, String>
     {

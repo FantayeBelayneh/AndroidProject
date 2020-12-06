@@ -11,10 +11,10 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Editbo"></activity>
+        <activity android:name=".EditDates"></activity>
         <activity android:name=".Login" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".Blackouts">
+        <activity android:name=".DatesManager">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
