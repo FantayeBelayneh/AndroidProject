@@ -24,24 +24,23 @@ import java.util.Date;
 
 public class EditDates extends AppCompatActivity    {
 
-    protected  dbOperations dbOperator;
-    protected SQLiteDatabase myDB;
-    public SQLiteDatabase database;
-    private DatabaseConnection dbOperations;
-    CommonTools commonTools;
-    String workingTable, dataset;
-    boolean canSave = false;
-
-
     Button btnClose, btnSelectStart, btnSelectEnd, btnSave;
     TextView tvStartingDate, tvEndingDate;
     CalendarView calDate;
     SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
-    String selectedDate = "";
-    String mode = null, dataState = null;
-    String startingDate, endingDate;
-    String ID_fieldValue;
-    boolean waitOver;
+
+    protected  dbOperations dbOperator;
+    protected SQLiteDatabase myDB;
+    public SQLiteDatabase database;
+    private DatabaseConnection dbOperations;
+    private CommonTools commonTools;
+
+
+    String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue, staffID  ;
+    boolean canSave = false, waitOver;
+    int allowedDays=0, allocatedDays = 0, daysCount=0;
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +69,12 @@ public class EditDates extends AppCompatActivity    {
         dataState = bundle.getString("dataState").toString();
         workingTable = bundle.getString("workingTable", "workingTable");
 
+        if (mode.equals("to"))
+        {
+            staffID = bundle.getString("staffID");
+            allowedDays = Integer.parseInt(bundle.getString("allowedBenefitDays"));
 
+        }
 
         if (dataState.equals("edit"))
         {
@@ -95,10 +99,9 @@ public class EditDates extends AppCompatActivity    {
                         switch (dataState) {
                             case "new":
                                 try {
-                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                    if (canSave == false)
-                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                    if (canSave == true) {
+                                    canSave = computeEligibility();
+                                    if (canSave == true)
+                                    {
                                         String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
                                         sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
                                         database.execSQL(sqlCommand);
@@ -136,17 +139,17 @@ public class EditDates extends AppCompatActivity    {
                         switch (dataState) {
                             case "new":
                                 try {
-                                    int z = getCountOfWorkingDays(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                    if (canSave == false)
-                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                    if (canSave == true) {
-                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
-                                        sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
+                                    canSave = computeEligibility();
+                                    if (canSave== true)
+                                    {
+                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING, BENEFIT_DAYS, STAFF_ID ) VALUES ( '";
+                                        sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() ;
+                                        sqlCommand += "', " + daysCount +  ", '" + staffID +"')";
                                         database.execSQL(sqlCommand);
+                                        Log.i("insert sql", sqlCommand);
                                         finish();
                                     } else {
-                                        commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
+                                        commonTools.ShowMessages("Save Data", "Your selections are not saved");
                                     }
                                 } catch (ParseException e) {
                                     e.printStackTrace();
@@ -165,7 +168,7 @@ public class EditDates extends AppCompatActivity    {
                                         database.execSQL(sqlCommand);
                                         finish();
                                     } else {
-                                        commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
+                                        commonTools.ShowMessages("Save Data", "Your selections are not saved");
                                     }
                                 } catch (ParseException e) {
                                     e.printStackTrace();
@@ -243,16 +246,113 @@ public class EditDates extends AppCompatActivity    {
         });
     }
 
-    protected boolean computeLegibility(String sdt1, String sdt2) throws ParseException {
-        Date dt1, dt2;
+    protected boolean computeEligibility() throws ParseException {
+        String day1, day2;
+        boolean noOverlapExists;
+        boolean notInBlackOutPeriod;
+        day1 =tvStartingDate.getText().toString();
+        day2 = tvEndingDate.getText().toString();
 
-       /* dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
-        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);*/
-        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
-        dt2 = new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
-        return  false;
+        datesInOrder(day1, day2);
+        datesEqual(day1, day2);
+        allocatedDays = countAllocatedDays();
+
+        daysCount = getCountOfWorkingDays(day1, day2);
+        noOverlapExists = checkForOverlaps(day1, day2);
+        notInBlackOutPeriod = checkForBlackoutPeriod(day1, day2);
+
+        if (noOverlapExists == false)
+        {
+            commonTools.ShowMessages("Conflicting Schedule", "Your choices conflict with existing arrangements. Please review.");
+            return  false;
+        }
+        else if (notInBlackOutPeriod)
+        {
+            commonTools.ShowMessages("Conflicting Schedule", "Your choices occurs within a blackout period. Please review.");
+            return false;
+        }
+
+        else
+        {
+            if (allowedDays - (daysCount + allocatedDays) >= 0 )
+            {
+                return true;
+            }
+            else
+            {
+                commonTools.ShowMessages("Allocated Days", "You have exceeded your allowances.");
+                return false;
+            }
+        }
     }
 
+    protected boolean checkForBlackoutPeriod(String sdt1, String sdt2)
+    {
+        String query;
+        int iResult;
+
+        query = "SELECT * FROM BLACK_OUTS WHERE " ;
+        query+= " START_FROM BETWEEN date('" + sdt1 + "')  AND date('" + sdt2 + "') " ;
+        query+= " OR ENDING  BETWEEN date('" + sdt1 + "')  AND date('" + sdt2 + "') " ;
+        Cursor cursor = database.rawQuery(query, null);
+
+        cursor.moveToFirst();
+        try {
+            iResult = cursor.getInt(0);
+        }
+        catch (Exception z)
+        {
+            iResult = 0;
+        }
+
+        if (iResult > 0 ) return false;
+        else return true;
+    }
+
+
+    protected boolean checkForOverlaps(String sdt1, String sdt2)
+    {
+        String query;
+        int iResult;
+
+        query = "SELECT * FROM TIME_OFF WHERE date(START_FROM) BETWEEN " ;
+        query+= " DATE('" + sdt1 + "') AND DATE('" + sdt2 + "') ";
+        query+= " AND STAFF_ID =  " + staffID  ;
+
+        Cursor cursor = database.rawQuery(query, null);
+        cursor.moveToFirst();
+        try {
+            iResult = cursor.getInt(0);
+        }
+        catch (Exception z)
+        {
+            iResult = 0;
+        }
+
+        query = "SELECT * FROM TIME_OFF WHERE date(ENDING) BETWEEN " ;
+        query+= " DATE('" + sdt1 + "') AND DATE('" + sdt2 + "')";
+        query+= " AND STAFF_ID =  " + staffID  ;
+        cursor = database.rawQuery(query, null);
+        cursor.moveToFirst();
+        try {
+            iResult += cursor.getInt(0);
+        }
+        catch (Exception z)
+        {
+            iResult += 0;
+        }
+        if (iResult > 0 ) return false;
+        else return true;
+    }
+
+    protected int countAllocatedDays()
+    {
+        String query;
+        query = "SELECT SUM(BENEFIT_DAYS) FROM TIME_OFF WHERE STAFF_ID = " + staffID ;
+        Cursor cursor = database.rawQuery(query, null);
+        cursor.moveToFirst();
+        return cursor.getInt(0);
+    }
 
     protected int getCountOfWorkingDays(String sdt1, String sdt2) throws ParseException {
         int days = 0;
@@ -286,10 +386,11 @@ public class EditDates extends AppCompatActivity    {
     protected  boolean datesInOrder(String sdt1, String sdt2) throws ParseException {
         Date dt1, dt2;
 
-     /*   dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
-        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);*/
-        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
-        dt2 = new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
+       dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
+
+       /* dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
+        dt2 =*/ new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
 
         if (dt2.after(dt1))
         {

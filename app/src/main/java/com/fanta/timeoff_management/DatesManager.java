@@ -20,23 +20,17 @@ import android.widget.TextView;
 
 public class DatesManager extends AppCompatActivity {
 
-    ListView lvBO;
-    TextView start_, ending_, _id;
-    String query;
-    String workingTable, mode;
-    boolean isAdmin;
-    boolean optionsEnabled;
+    protected ListView lvBO;
+    protected TextView start_, ending_, _id;
 
-
-    boolean rowSelected = false;
-    String selectedStart, selectedEnding, selectedID;
+    protected boolean rowSelected = false, isAdmin, optionsEnabled   ;
+    protected String staffID,  selectedStart, selectedEnding, selectedID,query,  workingTable, mode, allowedBenefitDays ;
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     public SQLiteDatabase database;
     private DatabaseConnection dbOperations;
-    CommonTools commonTools;
-
-    Cursor cursor;
+    private CommonTools commonTools;
+    private Cursor cursor;
 
 
     @Override
@@ -47,6 +41,8 @@ public class DatesManager extends AppCompatActivity {
         mode = "to";
         workingTable = "TIME_OFF";
         isAdmin = false;
+        staffID = "2";
+        allowedBenefitDays = "10";
 
         if (isAdmin == false && mode == "bo")
         {
@@ -175,6 +171,13 @@ public class DatesManager extends AppCompatActivity {
                         goBO.putExtra("mode", mode);
                         goBO.putExtra("dataState", "new");
                         goBO.putExtra("workingTable", workingTable);
+                        if (mode == "to")
+                        {
+                            goBO.putExtra("staffID", staffID);
+                            goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
+
+                        }
+
                         startActivity(goBO);
                     } catch (Exception y) {
                         commonTools.ShowExceptionMessage(y, "show new activity");
@@ -204,6 +207,7 @@ public class DatesManager extends AppCompatActivity {
                         goBO.putExtra("startingDate", start_.getText().toString());
                         goBO.putExtra("endingDate", ending_.getText().toString());
                         goBO.putExtra("workingTable", workingTable);
+                        if (mode == "to") goBO.putExtra("staffID", staffID);
 
                         startActivity(goBO);
 
