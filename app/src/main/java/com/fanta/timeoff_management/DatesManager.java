@@ -24,7 +24,7 @@ public class DatesManager extends AppCompatActivity {
     protected TextView start_, ending_, _id;
 
     protected boolean rowSelected = false, isAdmin, optionsEnabled   ;
-    protected String staffID,  selectedStart, selectedEnding, selectedID,query,  workingTable, mode, allowedBenefitDays ;
+    protected String staffID,  selectedStart, selectedEnding, selectedID,query,  workingTable, mode, allowedBenefitDays, emailAddress ;
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     public SQLiteDatabase database;
@@ -43,6 +43,7 @@ public class DatesManager extends AppCompatActivity {
         isAdmin = false;
         staffID = "2";
         allowedBenefitDays = "10";
+        emailAddress = "time_off_management@outlook.com";
 
         if (isAdmin == false && mode == "bo")
         {
@@ -153,8 +154,23 @@ public class DatesManager extends AppCompatActivity {
     public boolean onCreateOptionsMenu(Menu menu) {
         MenuInflater inflater = getMenuInflater();
         inflater.inflate(R.menu.bo_menu, menu);
-
         return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem item1 = menu.findItem(R.id.addbo);
+        MenuItem item2 = menu.findItem(R.id.deletebo);
+        MenuItem item3 = menu.findItem(R.id.editbo);
+
+        if (mode.equals("to"))
+        {
+            item1.setTitle("Add");
+            item2.setTitle("Delete");
+            item3.setTitle("Edit");
+        }
+
+        return super.onPrepareOptionsMenu(menu);
     }
 
 ////////////////
@@ -210,6 +226,7 @@ public class DatesManager extends AppCompatActivity {
                         {
                             goBO.putExtra("staffID", staffID);
                             goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
+                            goBO.putExtra("emailAddress", emailAddress);
                         }
 
 

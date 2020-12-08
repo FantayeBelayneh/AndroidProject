@@ -35,6 +35,7 @@ public class EditDates extends AppCompatActivity    {
     public SQLiteDatabase database;
     private DatabaseConnection dbOperations;
     private CommonTools commonTools;
+    protected SendMail sendEmail;
 
 
     String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue, staffID  ;
@@ -56,6 +57,7 @@ public class EditDates extends AppCompatActivity    {
         dbOperations = new DatabaseConnection(EditDates.this, "time_off_management", null, 1);
         database = dbOperations.getWritableDatabase();
         commonTools = new CommonTools(this);
+
 
         btnClose = findViewById(R.id.btnClose);
         btnSave = findViewById(R.id.btnSave);
@@ -159,11 +161,16 @@ public class EditDates extends AppCompatActivity    {
                                     canSave = computeEligibility();
                                     if (canSave== true)
                                     {
+                                        Log.i("insert sql", "Before insertion");
                                         String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING, BENEFIT_DAYS, STAFF_ID ) VALUES ( '";
                                         sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() ;
                                         sqlCommand += "', " + daysCount +  ", '" + staffID +"')";
                                         database.execSQL(sqlCommand);
                                         Log.i("insert sql", sqlCommand);
+                                        commonTools.ShowMessages("compile email", "to email");
+                                        sendEmail = new SendMail(Integer.parseInt(staffID), tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 0);
+                                        //sendEmail = new SendMail(3, "now", "then",  EditDates.this);
+                                        sendEmail.execute();
                                         finish();
                                     } else {
                                         commonTools.ShowMessages("Save Data", "Your selections are not saved");
@@ -183,6 +190,8 @@ public class EditDates extends AppCompatActivity    {
                                         sqlCommand += "', BENEFIT_DAYS = " + String.valueOf(daysCount) + ", APPROVED = '0' " ;
                                         sqlCommand += " WHERE _id =" + String.valueOf(ID_fieldValue);
                                         database.execSQL(sqlCommand);
+                                        sendEmail = new SendMail(Integer.parseInt(staffID), tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 1);
+                                        sendEmail.execute();
                                         finish();
                                     } else {
                                         commonTools.ShowMessages("Save Data", "Your selections are not saved");

@@ -74,8 +74,7 @@ public class Login extends AppCompatActivity {
                     if (validateLoginCredentials())
                     {
                         getUserProfile();
-                        SendMail sm = new SendMail() ;
-                        sm.execute();
+
                     }
                 }
 
@@ -181,7 +180,7 @@ public class Login extends AppCompatActivity {
     }
 
 
-    public class SendMail extends AsyncTask<String, String, String> {
+    /*public class SendMail extends AsyncTask<String, String, String> {
 
         @Override
         protected String doInBackground(String... strings) {
@@ -281,5 +280,5 @@ public class Login extends AppCompatActivity {
             Log.i("mailgen",  "pre");
         }
     }
-
+*/
 }

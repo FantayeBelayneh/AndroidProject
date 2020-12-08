@@ -13,9 +13,9 @@
         android:theme="@style/AppTheme">
         <activity android:name=".DataCollector"></activity>
         <activity android:name=".EditDates" />
-        <activity android:name=".DatesManager" />
+        <activity android:name=".Login" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".Login">
+        <activity android:name=".DatesManager">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
