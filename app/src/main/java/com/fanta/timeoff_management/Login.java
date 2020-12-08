@@ -74,11 +74,8 @@ public class Login extends AppCompatActivity {
                     if (validateLoginCredentials())
                     {
                         getUserProfile();
-
                         SendMail sm = new SendMail() ;
                         sm.execute();
-
-
                     }
                 }
 
@@ -192,8 +189,8 @@ public class Login extends AppCompatActivity {
             Log.i("mailgen",  "in doinback");
             try {
                 String host =  "smtp.office365.com";    // "smtp.gmail.com";
-                String from = "fantaye.belayneh@outlook.com";
-                String pass = "Dec$2020";
+                String from = "time_off_management@outlook.com";
+                String pass = "Dec$$2020";
                 Properties props = System.getProperties();
                 props.put("mail.smtp.starttls.enable", "true");
                 props.put("mail.smtp.host", host);
@@ -201,7 +198,7 @@ public class Login extends AppCompatActivity {
                 props.put("mail.smtp.password", pass);
                 props.put("mail.smtp.port", "587");
                 props.put("mail.smtp.auth", "true");
-                String[] to = {"fantaye.belayneh@gmail.com"};
+                String[] to = {"time_off_management@outlook.com"};
                 String subject = "Surprise";
                 String content_message = "Dinner has been announced";
                 Session session = Session.getDefaultInstance(props, null);

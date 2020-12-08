@@ -175,7 +175,6 @@ public class DatesManager extends AppCompatActivity {
                         {
                             goBO.putExtra("staffID", staffID);
                             goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
-
                         }
 
                         startActivity(goBO);
@@ -207,7 +206,12 @@ public class DatesManager extends AppCompatActivity {
                         goBO.putExtra("startingDate", start_.getText().toString());
                         goBO.putExtra("endingDate", ending_.getText().toString());
                         goBO.putExtra("workingTable", workingTable);
-                        if (mode == "to") goBO.putExtra("staffID", staffID);
+                        if (mode == "to")
+                        {
+                            goBO.putExtra("staffID", staffID);
+                            goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
+                        }
+
 
                         startActivity(goBO);
 

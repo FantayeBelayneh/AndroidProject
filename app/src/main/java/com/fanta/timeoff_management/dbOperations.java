@@ -63,7 +63,7 @@ public class dbOperations  {
         UserProfile retVal = new UserProfile();
         int iRetVal;
         String searchQuery;
-        searchQuery = "SELECT ID, BENEFIT_DAYS FROM USERS WHERE LOGINNAME = '" + user + "'";
+        searchQuery = "SELECT _id, BENEFIT_DAYS FROM USERS WHERE LOGINNAME = '" + user + "'";
         Cursor c = db.rawQuery(searchQuery, null);
         c.moveToNext();
         iRetVal = c.getInt(0);

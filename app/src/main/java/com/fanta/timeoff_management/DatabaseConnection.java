@@ -33,7 +33,7 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
         cmd += " (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, STAFF_ID VARCHAR(6), " ;
         cmd += " START_FROM VARCHAR(10), ENDING VARCHAR(10), BENEFIT_DAYS INTEGER, " ;
         cmd += " APPROVED VARCHAR(1) DEFAULT 0 CHECK( APPROVED IN ('0', '1')) )";
-        db.execSQL(cmd);
+        //db.execSQL(cmd);
 
         cmd += " CREATE TABLE USERS ( ";
         cmd += " _id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
@@ -43,7 +43,7 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
         cmd += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, ";
         cmd += " ISAPPROVER INTEGER NOT NULL DEFAULT 0, ";
         cmd += " CHECK(ISAPPROVER IN (0,1)) )";
-        db.execSQL(cmd);
+        //db.execSQL(cmd);
 
     }
 
