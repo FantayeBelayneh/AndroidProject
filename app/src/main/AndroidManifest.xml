@@ -15,9 +15,9 @@
         <activity android:name=".DatesManager" />
         <activity android:name=".DataCollector" />
         <activity android:name=".EditDates" />
-        <activity android:name=".Login" />
+        <activity android:name=".Menu" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".Menu">
+        <activity android:name=".Login">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

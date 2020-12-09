@@ -30,7 +30,7 @@ public class Login extends AppCompatActivity {
 
     Button btnExit, btnLogin;
     EditText txtLogin, txtPassword;
-    CommonTools commonTools;
+    CommonTools commonTools = new CommonTools(this);
 
 
     //EditText login;
@@ -42,9 +42,7 @@ public class Login extends AppCompatActivity {
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     SharedPreferences sharedPreferences ;
-    public int USER_TYPE = 0;
-    public final int isAdmin = 1;
-    public final int nonAdmin = 0;
+
 
 
 
@@ -75,7 +73,27 @@ public class Login extends AppCompatActivity {
                 {
                     if (validateLoginCredentials())
                     {
-                        getUserProfile();
+
+                        userProfile = dbOperator.getUserProfile(myDB, txtLogin.getText().toString());
+                        if (userProfile.validated == true)
+                        {
+
+                          /*  Intent menu = new Intent(Login.this, Menu.class);
+                            menu.putExtra("staffID", userProfile.userId);
+                            menu.putExtra("allowedBenefitDays", userProfile.BenefitDays);
+                            menu.putExtra("emailAddress", userProfile.emailAddress);
+                            menu.putExtra("staffName", userProfile.staffName);
+                            boolean isAdmin = false;
+                            if (userProfile.AdminUser == 1) isAdmin = true;
+
+                            menu.putExtra("isAdmin", isAdmin);
+                            //commonTools.ShowMessages("User Profile ", String.valueOf(isAdmin));
+                                startActivity(menu);*/
+                        }
+                        else
+                        {
+                            commonTools.ShowMessages("User Profile ", "Unable to complete your login. Please report the problem. Prooblem # 9999");
+                        }
                     }
                 }
 
@@ -93,11 +111,7 @@ public class Login extends AppCompatActivity {
         });
     } // end of onCreate
 
-    protected void getUserProfile()
-    {
-        userProfile = dbOperator.getUserProfile(myDB, txtLogin.getText().toString());
-        userProfile.AdminUser = USER_TYPE;
-    }
+
 
     private boolean validateLoginCredentials()
     {
@@ -124,17 +138,16 @@ public class Login extends AppCompatActivity {
                 if (adminUser == true)
                 {
                     Log.i("Credential Validation", "You are logging in as admin priveleged user.");
-                    dialogMessage = "This is admin user";
+                    //dialogMessage = "This is admin user";
                     Log.i("credent", "You are logging in as admin priveleged user.");
-                    commonTools.ShowMessages(dialogTitle,dialogMessage);
-                    USER_TYPE = isAdmin;
+                    //commonTools.ShowMessages(dialogTitle,dialogMessage);
                 }
                 else
                 {
                     Log.i("credent 220", "You are logging in as admin priveleged user.");
                     dialogMessage = "Not admin user";
                     Log.i("credent", "You can view your booked time-offs and book additional time");
-                    commonTools.ShowMessages(dialogTitle,dialogMessage);
+                    //commonTools.ShowMessages(dialogTitle,dialogMessage);
                 }
             }
 

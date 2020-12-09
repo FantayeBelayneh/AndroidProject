@@ -42,9 +42,9 @@ public class EditDates extends AppCompatActivity    {
 
 
 
-    String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue, staffID  ;
+    String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue ;
     boolean canSave = false, waitOver;
-    int allowedDays=0, allocatedDays = 0, daysCount=0;
+    int allowedDays=0, allocatedDays = 0, daysCount=0, staffID ;
 
     Date today;
 
@@ -87,17 +87,23 @@ public class EditDates extends AppCompatActivity    {
 
         Bundle bundle = getIntent().getExtras();
 
+
         mode = bundle.getString("mode");
         dataState = bundle.getString("dataState").toString();
         workingTable = bundle.getString("workingTable", "workingTable");
-
-        if (mode.equals("to"))
+        try
         {
-            staffID = bundle.getString("staffID");
-            allowedDays = Integer.parseInt(bundle.getString("allowedBenefitDays"));
+            if (mode.equals("to"))
+            {
+                staffID = bundle.getInt("staffID");
+                allowedDays = bundle.getInt("allowedBenefitDays");
 
+            }
         }
-
+        catch (Exception c)
+        {
+            commonTools.ShowExceptionMessage    (c, "Unloading bundle"   + staffID + "  " + allowedDays);
+        }
         if (dataState.equals("edit"))
         {
             ID_fieldValue = bundle.getString("ID_fieldValue");
@@ -120,7 +126,6 @@ public class EditDates extends AppCompatActivity    {
                 processData.execute();
             }
         });
-
 
         calDate.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
@@ -154,7 +159,6 @@ public class EditDates extends AppCompatActivity    {
                 }
             }
         });
-
         btnSelectEnd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
@@ -177,7 +181,6 @@ public class EditDates extends AppCompatActivity    {
                 }
             }
         });
-
 
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -551,7 +554,7 @@ public class EditDates extends AppCompatActivity    {
                                     database.execSQL(sqlCommand);
                                     progress_bar.setProgress(50);
                                     Log.i("insert sql", sqlCommand);
-                                    sendEmail = new SendMail(Integer.parseInt(staffID), tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 0);
+                                    sendEmail = new SendMail( staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 0);
                                     progress_bar.setProgress(75);
                                     sendEmail.execute();
                                     progress_bar.setProgress(100);
@@ -574,7 +577,7 @@ public class EditDates extends AppCompatActivity    {
                                     sqlCommand += "', BENEFIT_DAYS = " + String.valueOf(daysCount) + ", APPROVED = '0' ";
                                     sqlCommand += " WHERE _id =" + String.valueOf(ID_fieldValue);
                                     database.execSQL(sqlCommand);
-                                    sendEmail = new SendMail(Integer.parseInt(staffID), tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 1);
+                                    sendEmail = new SendMail(staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 1);
                                     sendEmail.execute();
                                     finish();
                                 } else {

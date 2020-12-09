@@ -12,39 +12,64 @@ import androidx.annotation.Nullable;
 
 public class DatabaseConnection  extends SQLiteOpenHelper {
     protected String DATABASE_NAME;
-
+    private CommonTools commonTools;
 
     public DatabaseConnection(@Nullable Context context, @Nullable String DBname, @Nullable SQLiteDatabase.CursorFactory factory, int version) {
         super(context, DBname, factory, version);
         DATABASE_NAME = DBname;
+        commonTools = new CommonTools(context);
     }
     public DatabaseConnection(Context cx, String DBname,  int version) {
         super(cx, DBname,null, version);
+        commonTools = new CommonTools(cx);
     }
 
     @Override
     public void onCreate(SQLiteDatabase db) {
         String cmd;
-        //db.execSQL(createtablecommand());
-        cmd = "CREATE TABLE IF NOT EXISTS BLACK_OUTS (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
-        db.execSQL(cmd);
+        try {
+            //Log.i("table creation", "create U");
+            db.execSQL(createtablecommand());
+            Log.i("table creation", "create BLACK_OUTS");
+            cmd = "CREATE TABLE IF NOT EXISTS BLACK_OUTS (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, START_FROM VARCHAR(10), ENDING VARCHAR(10))";
+            db.execSQL(cmd);
+            Log.i("table creation", "TIME_OFF");
+            cmd = "CREATE TABLE IF NOT EXISTS TIME_OFF ";
+            cmd += " (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, STAFF_ID VARCHAR(6), ";
+            cmd += " START_FROM VARCHAR(10), ENDING VARCHAR(10), BENEFIT_DAYS INTEGER, ";
+            cmd += " APPROVED VARCHAR(1) DEFAULT 0 CHECK( APPROVED IN ('0', '1', '2')) )";
+            db.execSQL(cmd);
+     /*       Log.i("table creation", "");
+            cmd += " CREATE TABLE IF NOT EXISTS USERS  ( ";
+            cmd += " _id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
+            cmd += " LOGINNAME VARCHAR(6) NOT NULL UNIQUE, ";
+            cmd += " PASSWORD VARCHAR(6) NOT NULL, ";
+            cmd += " STAFF_NAME VARCHAR(15) NOT NULL, ";
+            cmd += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, EMAIL_ADDRESS VARCHAR(50), ";
+            cmd += " ISAPPROVER INTEGER NOT NULL DEFAULT 0, ";
+            cmd += " CHECK(ISAPPROVER IN (0,1)) )";
+            db.execSQL(cmd);
+            Log.i("table creation", "");*/
+        }
+        catch (Exception x)
+        {
+            commonTools.ShowExceptionMessage( x, "Table Creation");
+        }
 
-        cmd = "CREATE TABLE IF NOT EXISTS TIME_OFF " ;
-        cmd += " (_id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, STAFF_ID VARCHAR(6), " ;
-        cmd += " START_FROM VARCHAR(10), ENDING VARCHAR(10), BENEFIT_DAYS INTEGER, " ;
-        cmd += " APPROVED VARCHAR(1) DEFAULT 0 CHECK( APPROVED IN ('0', '1')) )";
-        //db.execSQL(cmd);
+    }
 
-        cmd += " CREATE TABLE USERS ( ";
-        cmd += " _id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
-        cmd += " LOGINNAME VARCHAR(6) NOT NULL UNIQUE, ";
-        cmd += " PASSWORD VARCHAR(6) NOT NULL, ";
-        cmd += " STAFF_NAME VARCHAR(15) NOT NULL, ";
-        cmd += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, ";
-        cmd += " ISAPPROVER INTEGER NOT NULL DEFAULT 0, ";
-        cmd += " CHECK(ISAPPROVER IN (0,1)) )";
-        //db.execSQL(cmd);
+    protected String createtablecommand()
+    {
+        String createCommand = "";
 
+        createCommand += " CREATE TABLE IF NOT EXISTS USERS ( ";
+        createCommand += " ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
+        createCommand += " LOGINNAME VARCHAR(6) NOT NULL UNIQUE, ";
+        createCommand += " PASSWORD VARCHAR(6) NOT NULL, STAFF_NAME VARCHAR(15) NOT NULL, ";
+        createCommand += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, ";
+        createCommand += " ISAPPROVER INTEGER NOT NULL DEFAULT 0, EMAIL_ADDRESS VARCHAR(50),";
+        createCommand += " CHECK(ISAPPROVER IN (0,1)) )";
+        return  createCommand;
     }
 
     @Override
@@ -54,34 +79,4 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
     }
 
 
-    protected String createtablecommand()
-    {
-        String createCommand = "";
-
-        createCommand += " CREATE TABLE USERS ( ";
-        createCommand += " ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
-        createCommand += " LOGINNAME VARCHAR(6) NOT NULL UNIQUE, ";
-        createCommand += " PASSWORD VARCHAR(6) NOT NULL, ";
-        createCommand += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, ";
-        createCommand += " ISAPPROVER INTEGER NOT NULL DEFAULT 0, ";
-        createCommand += " CHECK(ISAPPROVER IN (0,1)) )";
-        return  createCommand;
-    }
-
-    protected void insertTestData(SQLiteDatabase db)
-    {
-        String insertCommand = "";
-        insertCommand += " INSERT INTO USERS (LOGINNAME, PASSWORD) VALUES ";
-        insertCommand += "    ('Andrew','1234'),";
-        insertCommand += "    ('Bill','1234'),";
-        insertCommand += "    ('Chad','1234'), ";
-        insertCommand += "    ('Donald','1234'), ";
-        insertCommand += "    ('Erick','2345'), ";
-        insertCommand += "    ('Frank','34567')";
-
-        db.execSQL(insertCommand);
-
-        Log.i("insertion", "Test data inserted");
-
-    }
-}
+   }

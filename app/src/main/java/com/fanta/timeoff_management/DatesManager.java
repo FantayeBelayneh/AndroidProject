@@ -26,7 +26,8 @@ public class DatesManager extends AppCompatActivity {
     protected Button btnExit;
 
     protected boolean rowSelected = false, isAdmin, optionsEnabled   ;
-    protected String staffID,  selectedStart, selectedEnding, selectedID,query,  workingTable, mode, allowedBenefitDays, emailAddress ;
+    protected String filter, selectedStart, selectedEnding, selectedID,query,  workingTable, mode, emailAddress ;
+    protected int staffID=0, allowedBenefitDays=0;
     protected  dbOperations dbOperator;
     protected SQLiteDatabase myDB;
     public SQLiteDatabase database;
@@ -62,19 +63,18 @@ public class DatesManager extends AppCompatActivity {
         if (mode.equals("bo"))
         {
             heading.setText("BLACKOUT PERIODS");
+            filter = "";
         }
         else
         {
             heading.setText("Reserved vacation days.");
+            staffID = bundle.getInt("staffID");
+            allowedBenefitDays = bundle.getInt("allowedBenefitDays");
+            filter = " WHERE STAFF_ID = " + staffID ;
         }
 
 
-       /* mode = "to";
-        workingTable = "TIME_OFF";
-        isAdmin = false;
-        staffID = "2";
-        allowedBenefitDays = "10";
-        emailAddress = "time_off_management@outlook.com";*/
+       /* emailAddress = "time_off_management@outlook.com";*/
 
         if (isAdmin == false && mode.equals("bo"))
         {
@@ -89,6 +89,7 @@ public class DatesManager extends AppCompatActivity {
             optionsEnabled = true;
         }
 
+
         //commonTools.ShowMessages("options to be set",  String.valueOf(optionsEnabled));
 
         btnExit.setOnClickListener(new View.OnClickListener() {
@@ -98,7 +99,7 @@ public class DatesManager extends AppCompatActivity {
             }
         });
 
-        query = " SELECT _id, START_FROM, ENDING FROM " + workingTable;
+
         RefreshListView();
         lvBO.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
@@ -109,6 +110,7 @@ public class DatesManager extends AppCompatActivity {
                 _id = view.findViewById(R.id.txtid);
             }
         });
+
     }
 
     @Override
@@ -122,6 +124,8 @@ public class DatesManager extends AppCompatActivity {
     {
         try
         {
+
+            query = " SELECT _id, START_FROM, ENDING FROM " + workingTable  + filter ;
             cursor = database.rawQuery( query, null);
             cursor.moveToFirst();
             Log.i("-adapter", String.valueOf(cursor.getCount()));
@@ -213,12 +217,12 @@ public class DatesManager extends AppCompatActivity {
             {
                 case R.id.addbo:
 
-                    try {
+                     try {
                         Intent goBO = new Intent(DatesManager.this, EditDates.class);
                         goBO.putExtra("mode", mode);
                         goBO.putExtra("dataState", "new");
                         goBO.putExtra("workingTable", workingTable);
-                        if (mode == "to")
+                        if (mode.equals("to"))
                         {
                             goBO.putExtra("staffID", staffID);
                             goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
@@ -226,8 +230,8 @@ public class DatesManager extends AppCompatActivity {
 
                         startActivity(goBO);
                     } catch (Exception y) {
-                        commonTools.ShowExceptionMessage(y, "show new activity");
-                    }
+                         commonTools.ShowExceptionMessage(y, "show new activity");
+                     }
                     return true;
                 case R.id.deletebo:
 

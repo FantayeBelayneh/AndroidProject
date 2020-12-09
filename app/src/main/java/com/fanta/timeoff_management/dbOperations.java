@@ -9,9 +9,11 @@ import android.util.Log;
 public class dbOperations  {
     public SQLiteDatabase workingDB;
     protected DatabaseConnection dbCon;
+    protected CommonTools commonTools;
     public dbOperations(Context cx)
     {
         dbCon = new DatabaseConnection(cx, "time_off_management", 1);
+        commonTools = new CommonTools(cx);
         workingDB = dbCon.getWritableDatabase();
     }
     protected boolean validateLogin(SQLiteDatabase db,  String user, String password)
@@ -63,15 +65,21 @@ public class dbOperations  {
         UserProfile retVal = new UserProfile();
         int iRetVal;
         String searchQuery;
-        searchQuery = "SELECT _id, BENEFIT_DAYS FROM USERS WHERE LOGINNAME = '" + user + "'";
+        searchQuery = "SELECT _id, BENEFIT_DAYS, EMAIL_ADDRESS, STAFF_NAME, ISAPPROVER FROM USERS WHERE LOGINNAME = '" + user + "'";
         Cursor c = db.rawQuery(searchQuery, null);
         c.moveToNext();
-        iRetVal = c.getInt(0);
+        iRetVal = c.getCount();
 
         if (iRetVal== 1)
         {
             retVal.userId = c.getInt(0);
             retVal.BenefitDays = c.getInt(1);
+            retVal.emailAddress = c.getString(2);
+            retVal.staffName = c.getString(3);
+            retVal.AdminUser = c.getInt(4);
+            //commonTools.ShowMessages("Profile staffname", retVal.staffName);
+
+            retVal.validated = true;
         }
 
         return  retVal;
