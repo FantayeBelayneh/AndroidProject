@@ -62,6 +62,8 @@ public class Login extends AppCompatActivity {
         txtPassword = findViewById(R.id.etPassword);
         txtLogin = findViewById(R.id.etLoginName);
 
+        txtPassword.setText(sharedPreferences.getString("LoginID", null));
+
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,7 +76,6 @@ public class Login extends AppCompatActivity {
                     if (validateLoginCredentials())
                     {
                         getUserProfile();
-
                     }
                 }
 
@@ -122,7 +123,7 @@ public class Login extends AppCompatActivity {
                 boolean adminUser = dbOperator.isAdminCredential(myDB, thisUser);
                 if (adminUser == true)
                 {
-                    Log.i("credent 210", "You are logging in as admin priveleged user.");
+                    Log.i("Credential Validation", "You are logging in as admin priveleged user.");
                     dialogMessage = "This is admin user";
                     Log.i("credent", "You are logging in as admin priveleged user.");
                     commonTools.ShowMessages(dialogTitle,dialogMessage);

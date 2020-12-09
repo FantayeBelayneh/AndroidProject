@@ -86,7 +86,7 @@ public class SendMail extends AsyncTask<String, String, String> {
          try {
             String host =  "smtp.office365.com";    // "smtp.gmail.com";
             String from = "time_off_management@outlook.com";
-            String pass = "";
+            String pass = "Dec$$2020";
             Properties props = System.getProperties();
             props.put("mail.smtp.starttls.enable", "true");
             props.put("mail.smtp.host", host);
