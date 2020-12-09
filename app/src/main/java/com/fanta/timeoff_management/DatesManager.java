@@ -15,13 +15,15 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
 public class DatesManager extends AppCompatActivity {
 
     protected ListView lvBO;
-    protected TextView start_, ending_, _id;
+    protected TextView start_, ending_, _id, heading;
+    protected Button btnExit;
 
     protected boolean rowSelected = false, isAdmin, optionsEnabled   ;
     protected String staffID,  selectedStart, selectedEnding, selectedID,query,  workingTable, mode, allowedBenefitDays, emailAddress ;
@@ -37,19 +39,48 @@ public class DatesManager extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blackouts);
+        heading = findViewById(R.id.heading);
+        btnExit = findViewById(R.id.btnExit);
+        Cursor cursor;
+        dbOperator = new dbOperations(DatesManager.this);
+        myDB = dbOperator.workingDB;
+        dbOperations = new DatabaseConnection(DatesManager.this, "time_off_management", null, 1);
+        database = dbOperations.getWritableDatabase();
+        commonTools = new CommonTools(this);
+        lvBO = findViewById(R.id.lvBlackOuts);
+        Bundle bundle = getIntent().getExtras();
 
-        mode = "to";
+        String adminCheck = bundle.getString("isAdmin");
+
+        if (adminCheck == "yes") isAdmin = true; else isAdmin = false;
+        workingTable = bundle.getString("workingTable");
+
+        mode = bundle.getString("mode");
+
+        //commonTools.ShowMessages("check", "working table = " + workingTable + " mode ="  + mode + " isAdmin" + isAdmin  + " admin Check " + adminCheck);
+
+        if (mode.equals("bo"))
+        {
+            heading.setText("BLACKOUT PERIODS");
+        }
+        else
+        {
+            heading.setText("Reserved vacation days.");
+        }
+
+
+       /* mode = "to";
         workingTable = "TIME_OFF";
         isAdmin = false;
         staffID = "2";
         allowedBenefitDays = "10";
-        emailAddress = "time_off_management@outlook.com";
+        emailAddress = "time_off_management@outlook.com";*/
 
-        if (isAdmin == false && mode == "bo")
+        if (isAdmin == false && mode.equals("bo"))
         {
             optionsEnabled = false;
         }
-        else  if (isAdmin == true && mode == "bo")
+        else  if (isAdmin == true && mode.equals("bo"))
         {
             optionsEnabled = true;
         }
@@ -58,14 +89,14 @@ public class DatesManager extends AppCompatActivity {
             optionsEnabled = true;
         }
 
-        Cursor cursor;
-        dbOperator = new dbOperations(DatesManager.this);
-        myDB = dbOperator.workingDB;
-        dbOperations = new DatabaseConnection(DatesManager.this, "time_off_management", null, 1);
-        database = dbOperations.getWritableDatabase();
-        commonTools = new CommonTools(this);
-        lvBO = findViewById(R.id.lvBlackOuts);
+        //commonTools.ShowMessages("options to be set",  String.valueOf(optionsEnabled));
 
+        btnExit.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                finish();
+            }
+        });
 
         query = " SELECT _id, START_FROM, ENDING FROM " + workingTable;
         RefreshListView();

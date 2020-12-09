@@ -11,12 +11,13 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Menu"></activity>
+        <activity android:name=".ViewRequests"></activity>
+        <activity android:name=".DatesManager" />
         <activity android:name=".DataCollector" />
         <activity android:name=".EditDates" />
         <activity android:name=".Login" />
         <activity android:name=".MainActivity" />
-        <activity android:name=".DatesManager">
+        <activity android:name=".Menu">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
