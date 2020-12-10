@@ -18,9 +18,11 @@ import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class DatesManager extends AppCompatActivity {
 
+    final String thisActivity = "Dates Manager";
     protected ListView lvBO;
     protected TextView start_, ending_, _id, heading;
     protected Button btnExit;
@@ -40,6 +42,8 @@ public class DatesManager extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_blackouts);
+        Toast.makeText(this, "Welcome to: " + thisActivity, Toast.LENGTH_LONG).show();
+
         heading = findViewById(R.id.heading);
         btnExit = findViewById(R.id.btnExit);
         Cursor cursor;
@@ -51,9 +55,9 @@ public class DatesManager extends AppCompatActivity {
         lvBO = findViewById(R.id.lvBlackOuts);
         Bundle bundle = getIntent().getExtras();
 
-        String adminCheck = bundle.getString("isAdmin");
+        isAdmin = bundle.getBoolean("isAdmin");
 
-        if (adminCheck == "yes") isAdmin = true; else isAdmin = false;
+
         workingTable = bundle.getString("workingTable");
 
         mode = bundle.getString("mode");
@@ -126,9 +130,10 @@ public class DatesManager extends AppCompatActivity {
         {
 
             query = " SELECT _id, START_FROM, ENDING FROM " + workingTable  + filter ;
+
             cursor = database.rawQuery( query, null);
             cursor.moveToFirst();
-            Log.i("-adapter", String.valueOf(cursor.getCount()));
+            Log.i("Query by Adapter", query);
 
             //final BOAdapter bo_dapter = new BOAdapter( Blackouts.this, cursor );
             final CursorAdapter bo_dapter = new CursorAdapter(DatesManager.this, cursor);
@@ -218,7 +223,7 @@ public class DatesManager extends AppCompatActivity {
                 case R.id.addbo:
 
                      try {
-                        Intent goBO = new Intent(DatesManager.this, EditDates.class);
+                       Intent goBO = new Intent(DatesManager.this, EditDates.class);
                         goBO.putExtra("mode", mode);
                         goBO.putExtra("dataState", "new");
                         goBO.putExtra("workingTable", workingTable);
@@ -227,7 +232,6 @@ public class DatesManager extends AppCompatActivity {
                             goBO.putExtra("staffID", staffID);
                             goBO.putExtra("allowedBenefitDays", allowedBenefitDays);
                         }
-
                         startActivity(goBO);
                     } catch (Exception y) {
                          commonTools.ShowExceptionMessage(y, "show new activity");

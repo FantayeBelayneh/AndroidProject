@@ -28,6 +28,7 @@ import javax.mail.internet.MimeMessage;
 
 public class Login extends AppCompatActivity {
 
+    final String thisActivity = "Login";
     Button btnExit, btnLogin;
     EditText txtLogin, txtPassword;
     CommonTools commonTools = new CommonTools(this);
@@ -50,8 +51,10 @@ public class Login extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        sharedPreferences = getSharedPreferences("LoginID", MODE_PRIVATE);
 
+        Toast.makeText(this, "Welcome to: " + thisActivity, Toast.LENGTH_LONG).show();
+
+        sharedPreferences = getSharedPreferences("LoginID", MODE_PRIVATE);
         dbOperator = new dbOperations(Login.this);
         myDB = dbOperator.workingDB;
         commonTools = new CommonTools(this);
@@ -60,7 +63,7 @@ public class Login extends AppCompatActivity {
         txtPassword = findViewById(R.id.etPassword);
         txtLogin = findViewById(R.id.etLoginName);
 
-        txtPassword.setText(sharedPreferences.getString("LoginID", null));
+        txtLogin.setText(sharedPreferences.getString(login_dp_key, null));
 
         btnLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -69,28 +72,27 @@ public class Login extends AppCompatActivity {
                 Log.i("userid", txtLogin.getText().toString());
                 LoginID.putString(login_dp_key, txtLogin.getText().toString());
                 LoginID.commit();
-                if (qualifyCredentials() ==  true)
+               if (qualifyCredentials() ==  true)
                 {
                     if (validateLoginCredentials())
                     {
 
                         userProfile = dbOperator.getUserProfile(myDB, txtLogin.getText().toString());
-                        if (userProfile.validated == true)
+                       if (userProfile.validated == true)
                         {
 
-                          /*  Intent menu = new Intent(Login.this, Menu.class);
-                            menu.putExtra("staffID", userProfile.userId);
-                            menu.putExtra("allowedBenefitDays", userProfile.BenefitDays);
-                            menu.putExtra("emailAddress", userProfile.emailAddress);
-                            menu.putExtra("staffName", userProfile.staffName);
-                            boolean isAdmin = false;
-                            if (userProfile.AdminUser == 1) isAdmin = true;
-
-                            menu.putExtra("isAdmin", isAdmin);
-                            //commonTools.ShowMessages("User Profile ", String.valueOf(isAdmin));
-                                startActivity(menu);*/
+                               Intent menu = new Intent(Login.this, Menu.class);
+                                menu.putExtra("staffID", userProfile.userId);
+                                menu.putExtra("allowedBenefitDays", userProfile.BenefitDays);
+                                menu.putExtra("emailAddress", userProfile.emailAddress);
+                                menu.putExtra("staffName", userProfile.staffName);
+                                boolean isAdmin = false;
+                                if (userProfile.AdminUser == 1) isAdmin = true;
+                                menu.putExtra("isAdmin", isAdmin);
+                                //commonTools.ShowMessages("User Profile ", String.valueOf(isAdmin));
+                                startActivity(menu);
                         }
-                        else
+                       else
                         {
                             commonTools.ShowMessages("User Profile ", "Unable to complete your login. Please report the problem. Prooblem # 9999");
                         }

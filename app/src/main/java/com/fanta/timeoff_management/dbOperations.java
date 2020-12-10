@@ -63,14 +63,14 @@ public class dbOperations  {
     protected UserProfile getUserProfile(SQLiteDatabase db,  String user)
     {
         UserProfile retVal = new UserProfile();
-        int iRetVal;
+       int iRetVal;
         String searchQuery;
         searchQuery = "SELECT _id, BENEFIT_DAYS, EMAIL_ADDRESS, STAFF_NAME, ISAPPROVER FROM USERS WHERE LOGINNAME = '" + user + "'";
         Cursor c = db.rawQuery(searchQuery, null);
         c.moveToNext();
         iRetVal = c.getCount();
 
-        if (iRetVal== 1)
+         if (iRetVal== 1)
         {
             retVal.userId = c.getInt(0);
             retVal.BenefitDays = c.getInt(1);

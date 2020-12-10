@@ -8,9 +8,11 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class Menu extends AppCompatActivity {
 
+    final String thisActivity = "Menu";
     Button btnBO, btnTO, btnRQ, btnExit;
     TextView txtWelcome;
     boolean isAdmin;
@@ -28,6 +30,7 @@ public class Menu extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_menu);
+        Toast.makeText(this, "Welcome to: " + thisActivity, Toast.LENGTH_LONG).show();
 
         btnBO = findViewById(R.id.btnbo);
         btnTO = findViewById(R.id.btnto);
@@ -85,7 +88,7 @@ public class Menu extends AppCompatActivity {
                 Intent goTO = new Intent(Menu.this, DatesManager.class);
                 goTO.putExtra("mode","to");
                 goTO.putExtra("workingTable", "TIME_OFF");
-                goTO.putExtra("staffID", 3);
+                goTO.putExtra("staffID", staffID);
                 goTO.putExtra("allowedBenefitDays",10);
                 goTO.putExtra("emailAddress", emailAddress);
                 startActivity(goTO);

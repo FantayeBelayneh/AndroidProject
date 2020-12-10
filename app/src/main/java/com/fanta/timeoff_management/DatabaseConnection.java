@@ -63,7 +63,7 @@ public class DatabaseConnection  extends SQLiteOpenHelper {
         String createCommand = "";
 
         createCommand += " CREATE TABLE IF NOT EXISTS USERS ( ";
-        createCommand += " ID INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
+        createCommand += " _id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL , ";
         createCommand += " LOGINNAME VARCHAR(6) NOT NULL UNIQUE, ";
         createCommand += " PASSWORD VARCHAR(6) NOT NULL, STAFF_NAME VARCHAR(15) NOT NULL, ";
         createCommand += " BENEFIT_DAYS INTEGER NOT NULL DEFAULT 10, ";

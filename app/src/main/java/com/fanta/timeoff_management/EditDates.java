@@ -14,8 +14,10 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CalendarView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
+
+import com.google.android.material.snackbar.Snackbar;
 
 import java.text.ParseException;
 import java.time.DayOfWeek;
@@ -26,12 +28,12 @@ import java.util.Date;
 
 public class EditDates extends AppCompatActivity    {
 
+    final String thisActivity = "Data Input";
+
+
     Button btnClose, btnSelectStart, btnSelectEnd, btnSave;
     TextView tvStartingDate, tvEndingDate;
     CalendarView calDate;
-    ProgressBar progress_bar;
-    processInputData processData;
-
     SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
     protected  dbOperations dbOperator;
@@ -39,12 +41,12 @@ public class EditDates extends AppCompatActivity    {
     public SQLiteDatabase database;
     private DatabaseConnection dbOperations;
     private CommonTools commonTools;
+    protected SendMail sendEmail;
 
 
-
-    String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue ;
+    String workingTable,   selectedDate = "", mode = null, dataState = null, startingDate, endingDate, ID_fieldValue  ;
     boolean canSave = false, waitOver;
-    int allowedDays=0, allocatedDays = 0, daysCount=0, staffID ;
+    int allowedDays=0, allocatedDays = 0, daysCount=0 ,staffID;
 
     Date today;
 
@@ -53,16 +55,8 @@ public class EditDates extends AppCompatActivity    {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editbo);
-
-        try
-        {
-            //updateUI update_UI = new updateUI();
-            processData = new processInputData();
-        }
-        catch (Exception z)
-        {
-            commonTools.ShowExceptionMessage(z, "initialize async");
-        }
+        Toast.makeText(this, "Welcome to: " + thisActivity, Toast.LENGTH_LONG).show();
+       /// Snackbar snackbar = Snackbar.make(coordinatorLayout, "www.journaldev.com", Snackbar.LENGTH_LONG).show();
 
         Cursor cursor;
         dbOperator = new dbOperations(EditDates.this);
@@ -79,31 +73,21 @@ public class EditDates extends AppCompatActivity    {
         tvStartingDate = findViewById(R.id.dtStart);
         tvEndingDate = findViewById(R.id.dtEnd);
         calDate = findViewById(R.id.calDate);
-        progress_bar = findViewById(R.id.progressBar);
-        progress_bar.setMax(100);
-        progress_bar.setVisibility(View.VISIBLE);
-
         Date SelectedDate;
 
         Bundle bundle = getIntent().getExtras();
 
-
         mode = bundle.getString("mode");
         dataState = bundle.getString("dataState").toString();
         workingTable = bundle.getString("workingTable", "workingTable");
-        try
-        {
-            if (mode.equals("to"))
-            {
-                staffID = bundle.getInt("staffID");
-                allowedDays = bundle.getInt("allowedBenefitDays");
 
-            }
-        }
-        catch (Exception c)
+        if (mode.equals("to"))
         {
-            commonTools.ShowExceptionMessage    (c, "Unloading bundle"   + staffID + "  " + allowedDays);
+            staffID = bundle.getInt("staffID");
+            allowedDays = bundle.getInt("allowedBenefitDays");
+
         }
+
         if (dataState.equals("edit"))
         {
             ID_fieldValue = bundle.getString("ID_fieldValue");
@@ -120,12 +104,122 @@ public class EditDates extends AppCompatActivity    {
 
         btnSave.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View v)
-            {
-                Log.i("BoxVal", tvStartingDate.getText().toString());
-                processData.execute();
+            public void onClick(View v) {
+
+                Log.i("BoxVal", tvStartingDate.getText().toString() );
+
+
+                if (tvStartingDate.getText().toString().equals("") || tvEndingDate.getText().toString().equals(""))
+                {
+                    commonTools.ShowMessages("Blank input fields", "Please select dates from the calendar."  );
+                    return;
+                }
+
+
+                switch (mode) {
+                    case "bo":
+                        switch (dataState) {
+                            case "new":
+
+                                canSave = check_BO_ForOverlaps(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+
+
+                                if (canSave == true)
+                                {
+                                    try {
+                                        datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    } catch (ParseException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                    String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
+                                    sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
+                                    database.execSQL(sqlCommand);
+                                    finish();
+                                }
+                                else
+                                {
+                                    commonTools.ShowMessages("Conflict", "The interval is in conflict with other range.");
+                                }
+                                break;
+                            case "edit":
+
+                                try {
+                                    canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == false)
+                                        canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
+                                    if (canSave == true) {
+
+                                        String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
+                                        sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
+                                        sqlCommand += "' WHERE _id =" + String.valueOf(ID_fieldValue);
+                                        database.execSQL(sqlCommand);
+                                        finish();
+                                    } else {
+                                        commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                        }
+                        break;
+
+                    case "to":
+                        switch (dataState) {
+
+                            case "new":
+                                //commonTools.ShowMessages("save", "100");
+                                //Log.i("SaveButton", "100");
+                                try {
+                                    canSave = computeEligibility();
+                                    if (canSave== true)
+                                    {
+                                        Log.i("insert sql", "Before insertion");
+                                        String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING, BENEFIT_DAYS, STAFF_ID ) VALUES ( '";
+                                        sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() ;
+                                        sqlCommand += "', " + daysCount +  ", '" + staffID +"')";
+                                        database.execSQL(sqlCommand);
+                                        Log.i("insert sql", sqlCommand);
+                                        //commonTools.ShowMessages("compile email", "to email");
+                                        sendEmail = new SendMail( staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 0);
+                                        //sendEmail = new SendMail(3, "now", "then",  EditDates.this);
+                                        sendEmail.execute();
+                                        finish();
+                                    } else {
+                                        commonTools.ShowMessages("Save Data", "Your selections are not saved");
+                                    }
+                                } catch (ParseException e) {
+                                    Log.i("SaveButton", e.getMessage());
+                                    e.printStackTrace();
+                                }
+                                break;
+                            case "edit":
+
+                                try {
+                                    canSave = computeEligibility();
+                                    if (canSave == true) {
+                                        String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
+                                        sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
+                                        sqlCommand += "', BENEFIT_DAYS = " + String.valueOf(daysCount) + ", APPROVED = '0' " ;
+                                        sqlCommand += " WHERE _id =" + String.valueOf(ID_fieldValue);
+                                        database.execSQL(sqlCommand);
+                                        sendEmail = new SendMail(staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 1);
+                                        sendEmail.execute();
+                                        finish();
+                                    } else {
+                                        commonTools.ShowMessages("Save Data", "Your selections are not saved");
+                                    }
+                                } catch (ParseException e) {
+                                    e.printStackTrace();
+                                }
+                                break;
+                        }
+                        break;
+                }
             }
         });
+
 
         calDate.setOnDateChangeListener(new CalendarView.OnDateChangeListener() {
             @Override
@@ -151,7 +245,6 @@ public class EditDates extends AppCompatActivity    {
                                 commonTools.ShowMessages("Dates not in chronological order", "Forcing change of ending date");
                             }
                             tvEndingDate.setText(selectedDate);
-                            progress_bar.setProgress(15);
                         }
                     } catch (ParseException e) {
                         e.printStackTrace();
@@ -159,6 +252,7 @@ public class EditDates extends AppCompatActivity    {
                 }
             }
         });
+
         btnSelectEnd.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v)
@@ -181,6 +275,7 @@ public class EditDates extends AppCompatActivity    {
                 }
             }
         });
+
 
         btnClose.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -286,7 +381,24 @@ public class EditDates extends AppCompatActivity    {
         }
 
     }
+    protected boolean check_BO_ForOverlaps(String sdt1, String sdt2)
+    {
+        String query;
+        int iResult;
 
+        query = "SELECT COUNT(*) FROM BLACK_OUTS WHERE date(START_FROM) BETWEEN " ;
+        query+= " DATE('" + sdt1 + "') AND DATE('" + sdt2 + "') ";
+
+        Log.i("SQL 1", query);
+
+        Cursor cursor = database.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        Log.i("kaunt=", String.valueOf(cursor.getInt(0)));
+        if (cursor.getInt(0) > 0) return false;
+        else return true;
+
+    }
 
     protected boolean checkForOverlaps(String sdt1, String sdt2)
     {
@@ -370,7 +482,7 @@ public class EditDates extends AppCompatActivity    {
 
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         Calendar c = Calendar.getInstance();
-       // while (dt2.after(dt1)) {
+        // while (dt2.after(dt1)) {
         while ( dt1.compareTo(dt2) <= 0)
         {
             if (dt1.toString().substring(0,3).toString().equals("Sat"))   { }
@@ -388,11 +500,11 @@ public class EditDates extends AppCompatActivity    {
     protected  boolean datesInOrder(String sdt1, String sdt2) throws ParseException {
         Date dt1, dt2;
 
-       dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
-       dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
+        dt1 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt1);
+        dt2 =  new SimpleDateFormat("yyyy-mm-dd").parse(sdt2);
 
-       dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
-       dt2 =new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
+        dt1 = new Date( Integer.parseInt(sdt1.substring(0,4))-1900, Integer.parseInt(sdt1.substring(5,7))-1, Integer.parseInt(sdt1.substring(8,10)));
+        dt2 =new Date( Integer.parseInt(sdt2.substring(0,4))-1900, Integer.parseInt(sdt2.substring(5,7))-1, Integer.parseInt(sdt2.substring(8,10)));
 
         if (dt2.after(dt1))
         {
@@ -426,212 +538,26 @@ public class EditDates extends AppCompatActivity    {
 
     class updateUI extends AsyncTask<String, String, String>
     {
-        CommonTools commonTools = new CommonTools(EditDates.this);
+
         public updateUI()
         {
-
             commonTools.ShowMessages("edit Data", "initiation");
-            Log.i("async", "Constructor");
         }
         @Override
         protected String doInBackground(String... strings) {
-            /*if (dataState == "edit")
+            if (dataState == "edit")
             {
                 commonTools.ShowMessages("edit Data", "in if block");
                 tvStartingDate.setText(startingDate);
                 tvEndingDate.setText(endingDate);
-                progress_bar.setProgress(50);
-            }*/
-
-          /*  commonTools.ShowMessages("pbar", "do inback invoked");
-
-            progress_bar.setProgress(50);*/
+            }
             return null;
-        }
-
-        @Override
-        protected void onProgressUpdate(String... values)
-        {
-            super.onProgressUpdate(values);
-            int progress_mark= Integer.parseInt(values[0]);
-            progress_bar.setProgress(progress_mark);
-            commonTools.ShowMessages("pbar", "on progress update invoked");
-            // this was added to see the progress in action as it was unnoticeable
-            try {
-                Thread.sleep(500);
-            }
-            catch ( InterruptedException x)
-            {
-                Log.i( "While updating progress bar", x.getMessage().toString());
-            }
-        }
-
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            commonTools.ShowMessages("pbar", "PreExec invoked");
         }
 
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            commonTools.ShowMessages("pbar", "PostExec invoked");
-           // waitOver = true;
-        }
-    }
-
-    protected  class processInputData extends AsyncTask<String, String, String>
-    {
-        CommonTools commonTools = new CommonTools(EditDates.this);
-        public processInputData()
-        {
-            Log.i("inasync", "in const 1");
-        }
-
-        @Override
-        protected String doInBackground(String... strings) {
-            SendMail sendEmail;
-            if (tvStartingDate.getText().toString().equals("") || tvEndingDate.getText().toString().equals(""))
-            {
-                commonTools.ShowMessages("Blank input fields", "Please select dates from the calendar.");
-                return null;
-            }
-
-            switch (mode) {
-                case "bo":
-                    switch (dataState) {
-                        case "new":
-
-                            try {
-                                canSave = computeEligibility();
-                                if (canSave == true) {
-                                    String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING) VALUES ( '";
-                                    sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString() + "')";
-                                    database.execSQL(sqlCommand);
-                                    finish();
-                                } else {
-                                    commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
-                                }
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                        case "edit":
-
-                            try {
-                                canSave = datesInOrder(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                if (canSave == false)
-                                    canSave = datesEqual(tvStartingDate.getText().toString(), tvEndingDate.getText().toString());
-                                if (canSave == true) {
-                                    String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
-                                    sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
-                                    sqlCommand += "' WHERE _id =" + String.valueOf(ID_fieldValue);
-                                    database.execSQL(sqlCommand);
-                                    finish();
-                                } else {
-                                    commonTools.ShowMessages("Save Data", "Data not saved (does this ever happen?)");
-                                }
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                    }
-                    break;
-
-                case "to":
-                    switch (dataState) {
-
-                        case "new":
-                            progress_bar.setProgress(10);
-                            try {
-                                canSave = computeEligibility();
-                                progress_bar.setProgress(15);
-                                if (canSave == true) {
-                                    Log.i("insert sql", "Before insertion");
-                                    String sqlCommand = "INSERT INTO " + workingTable + " (START_FROM, ENDING, BENEFIT_DAYS, STAFF_ID ) VALUES ( '";
-                                    sqlCommand += tvStartingDate.getText().toString() + "', '" + tvEndingDate.getText().toString();
-                                    sqlCommand += "', " + daysCount + ", '" + staffID + "')";
-                                    database.execSQL(sqlCommand);
-                                    progress_bar.setProgress(50);
-                                    Log.i("insert sql", sqlCommand);
-                                    sendEmail = new SendMail( staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 0);
-                                    progress_bar.setProgress(75);
-                                    sendEmail.execute();
-                                    progress_bar.setProgress(100);
-                                    finish();
-                                } else {
-                                    commonTools.ShowMessages("Save Data", "Your selections are not saved");
-                                }
-                            } catch (ParseException e) {
-                                Log.i("SaveButton", e.getMessage());
-                                e.printStackTrace();
-                            }
-                            break;
-                        case "edit":
-
-                            try {
-                                canSave = computeEligibility();
-                                if (canSave == true) {
-                                    String sqlCommand = "UPDATE " + workingTable + " SET START_FROM = '" + tvStartingDate.getText().toString();
-                                    sqlCommand += "' , ENDING = '" + tvEndingDate.getText().toString();
-                                    sqlCommand += "', BENEFIT_DAYS = " + String.valueOf(daysCount) + ", APPROVED = '0' ";
-                                    sqlCommand += " WHERE _id =" + String.valueOf(ID_fieldValue);
-                                    database.execSQL(sqlCommand);
-                                    sendEmail = new SendMail(staffID, tvStartingDate.getText().toString(), tvEndingDate.getText().toString(), EditDates.this, 1);
-                                    sendEmail.execute();
-                                    finish();
-                                } else {
-                                    commonTools.ShowMessages("Save Data", "Your selections are not saved");
-                                }
-                            } catch (ParseException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                    }
-                    break;
-            }
-            return null;
-        }
-        @Override
-        protected void onProgressUpdate(String... values)
-        {
-            super.onProgressUpdate(values);
-            int progress_mark= Integer.parseInt(values[0]);
-            progress_bar.setProgress(progress_mark);
-
-            // this was added to see the progress in action as it was unnoticeable
-            try
-            {
-                for (int i = 0; i <10250; i++)
-                {
-                    Thread.sleep(50000000);
-                }
-            }
-            catch ( InterruptedException x)
-            {
-                Log.i( "_while onProgressUpdate", x.getMessage().toString());
-            }
-        }
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            //commonTools.ShowMessages("PreExec", "preexec");
-            try {
-                progress_bar.setMax(100);
-                progress_bar.setVisibility(View.VISIBLE);
-                Log.i("Async", "PreEx invoked");
-            }
-            catch (Exception q)
-            {
-                Log.i("Async",  q.getMessage().toString());
-                commonTools.ShowExceptionMessage(q, q.getMessage().toString());
-            }
-        }
-
-        @Override
-        protected void onPostExecute(String s)
-        {
-            progress_bar.setVisibility(View.VISIBLE);
+            waitOver = true;
         }
     }
 }

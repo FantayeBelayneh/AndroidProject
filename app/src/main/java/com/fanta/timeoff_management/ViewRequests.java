@@ -2,7 +2,9 @@ package com.fanta.timeoff_management;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -50,6 +52,30 @@ public class ViewRequests extends AppCompatActivity {
                 finish();
             }
         });
+
+       /* lvVacations.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)
+            {
+                TextView selection = v.findViewById(R.id.txtid);
+               int rec_id =  Integer.parseInt(selection.getText().toString());
+
+                AlertDialog.Builder actOnRequest = new AlertDialog.Builder(ViewRequests.this);
+                actOnRequest.setTitle("Accept/Reject Request");
+                actOnRequest.setMessage( "Click on Yes to Accept or No to reject!");
+
+                actOnRequest.setPositiveButton("Continue", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface messageInterface, int which)
+                    {
+                        messageInterface.dismiss();
+                    }
+                });
+                AlertDialog dialog = actOnRequest.create();
+                dialog.show();
+
+
+            }
+        });*/
     }
 
     protected void RefreshListView()
@@ -57,7 +83,7 @@ public class ViewRequests extends AppCompatActivity {
         try
         {
             String query = "SELECT A._id, START_FROM, ENDING, A.BENEFIT_DAYS, STAFF_NAME FROM TIME_OFF A ";
-            query += " INNER JOIN USERS B ON  A.STAFF_ID  = B._id " ;
+            query += " INNER JOIN USERS B ON  A.STAFF_ID  = B._id WHERE APPROVED = 0 " ;
 
 
             cursor = database.rawQuery( query, null);
